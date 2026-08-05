@@ -1,785 +1,1825 @@
-# Modern Web Frameworks 2026
+# Modern Web Application 2026
 
-## От Virtual DOM к Resumability и HTML-first архитектурам
+## Architecture, Platform, Execution, Data and Delivery of Modern Web Applications
 
-> Книга о том, как изменилась веб-разработка после 2023 года.  
-> От эпохи SPA и Virtual DOM к новой эре, где HTML снова становится платформой, а реактивность достигается через Signals и компиляторы.
-
----
-
-## 📖 О книге
-
-За последние три года веб-разработка пережила тектонический сдвиг.
-
-То, что мы знали как «современный фронтенд» — с его SPA, Virtual DOM, тяжелым JavaScript-бандлом и дорогой гидратацией — перестало быть единственным путем. После 2023 года на сцену вышли новые парадигмы:
-
-- **Signals** как стандарт реактивности
-- **Resumability** вместо гидратации
-- **Компиляторы** как основной инструмент оптимизации
-- **HTML-first** подходы и возвращение к платформе
-- **Server Components** как новая модель рендеринга
-- **Islands Architecture** для постепенного улучшения
-
-Эта книга — карта новой реальности. Она показывает, как фреймворки эволюционировали, куда движутся и как выбрать правильную архитектуру для вашего проекта.
-
-Современные фреймворки:
-
-- **Angular**
-- **React**
-- **Vue**
-- **Svelte**
-- **Qwik**
-- **Astro**
-- **SolidJS**
-- **Next.js**
-- **Nuxt**
-
-уже не просто конкурируют. Они заимствуют лучшие идеи друг у друга, двигаясь к общей цели: **быстрее, легче, ближе к платформе**.
-
-Эта книга показывает, как именно они это делают.
+> **Modern Web Application 2026** — системное руководство по архитектуре современных веб-приложений: от HTML, CSS и Web APIs до JavaScript, WebAssembly, WebGPU, серверных систем, данных, AI и production infrastructure.
 
 ---
 
-# 🎯 Цель книги
+# 📖 О книге
 
-После изучения книги читатель должен понимать:
+Веб-приложение 2026 года больше нельзя адекватно описать как:
 
-- почему Virtual DOM перестал быть главным;
-- как работают Signals и чем они лучше предыдущих подходов;
-- что такое Resumability и чем она отличается от Hydration;
-- как современные компиляторы оптимизируют код;
-- почему HTML-first архитектуры снова актуальны;
-- как выбрать фреймворк для своего проекта в 2026 году;
-- как строить производительные full-stack приложения с Server Components и Edge Computing;
-- какова роль браузера как платформы в 2026 году;
-- куда движется веб-разработка в ближайшие 10 лет.
+```text
+Browser
+   ↓
+JavaScript
+   ↓
+Frontend Framework
+   ↓
+Backend
+   ↓
+Database
+```
+
+Эта модель слишком сильно привязана к эпохе SPA и JavaScript frameworks.
+
+Современный браузер сам является огромной программной платформой, предоставляющей:
+
+* HTML;
+* CSS;
+* DOM;
+* JavaScript;
+* Web APIs;
+* Web Components;
+* Workers;
+* Storage;
+* Streams;
+* Networking;
+* WebAssembly;
+* WebGPU;
+* Navigation;
+* View Transitions;
+* Service Workers;
+* device capabilities;
+* browser security primitives.
+
+В результате современное Web Application представляет собой не один runtime, а **систему взаимодействующих execution environments**.
+
+```text
+                         Web Application
+                               │
+          ┌────────────────────┼────────────────────┐
+          │                    │                    │
+       Browser UI          Application Logic       Data
+          │                    │                    │
+      HTML / CSS          JS / WASM / Workers    Fetch / Storage
+          │                    │                    │
+          └────────────────────┼────────────────────┘
+                               │
+                         Web Platform
+                               │
+             ┌─────────────────┼─────────────────┐
+             │                 │                 │
+          Browser           WebGPU           Network
+             │                 │                 │
+             └─────────────────┼─────────────────┘
+                               │
+                         Server / Cloud
+```
+
+Главный вопрос книги:
+
+> **Как правильно распределить ответственность между Web Platform, клиентским execution layer, сервером, данными и инфраструктурой?**
 
 ---
 
-# 👥 Для кого эта книга
+# 🎯 Главная идея
 
-Книга предназначена для:
+Современное Web Application следует строить **Platform First**.
 
-- Frontend-разработчиков, желающих быть в курсе последних трендов;
-- Full-stack разработчиков, строящих современные веб-приложения;
-- Архитекторов интерфейсов и технических лидов;
-- Разработчиков, которые хотят выбрать правильный фреймворк для нового проекта;
-- Специалистов по Web Performance и оптимизации;
-- Всех, кто хочет понимать, куда движется веб-платформа.
+Не:
+
+```text
+Framework
+   ↓
+Browser
+```
+
+а:
+
+```text
+Web Platform
+      ↓
+Application Architecture
+      ↓
+Optional Framework / Compiler / Runtime
+      ↓
+Application
+```
+
+Framework является не фундаментом Web Application, а **одним из архитектурных инструментов**.
+
+В зависимости от задачи приложение может использовать:
+
+```text
+HTML
+CSS
+Browser APIs
+JavaScript
+WebAssembly
+Workers
+WebGPU
+Web Components
+Server
+Database
+Cloud
+```
+
+и не обязано использовать всё одновременно.
 
 ---
 
-# 🧠 Главная идея
+# 🧭 Web Application Architecture 2026
 
-Современный frontend — это не битва фреймворков. Это эволюция веб-платформы.
+Предлагаемая базовая модель:
 
+```text
+┌────────────────────────────────────────────────────┐
+│                   APPLICATION                      │
+│                                                    │
+│  UI • Features • Business Logic • Data • State     │
+└───────────────────────┬────────────────────────────┘
+                        │
+┌───────────────────────▼────────────────────────────┐
+│               APPLICATION ARCHITECTURE             │
+│                                                    │
+│ Components • State • Routing • Data Flow           │
+│ Rendering • Execution • Security • Delivery        │
+└───────────────┬──────────────────────┬─────────────┘
+                │                      │
+                ▼                      ▼
+       ┌─────────────────┐    ┌─────────────────┐
+       │ Browser         │    │ Server / Cloud  │
+       │                 │    │                 │
+       │ HTML            │    │ HTTP            │
+       │ CSS             │    │ API             │
+       │ JS              │    │ Auth            │
+       │ WASM            │    │ Database        │
+       │ Workers         │    │ Cache           │
+       │ WebGPU          │    │ Queue           │
+       │ Storage         │    │ Compute         │
+       └────────┬────────┘    └────────┬────────┘
+                │                      │
+                └──────────┬───────────┘
+                           ▼
+                    INTERNET / WEB
 ```
-Эволюция парадигм:
 
-jQuery → SPA (Angular/React/Vue) → 2023+
-                                      |
-                                      ├── Server Components
-                                      ├── Signals
-                                      ├── Resumability
-                                      ├── Islands Architecture
-                                      └── HTML-first
+---
+
+# ⚙️ Multiple Execution Layers
+
+Одно из главных изменений Web Platform — наличие нескольких механизмов выполнения.
+
+## JavaScript
+
+JavaScript прежде всего отвечает за:
+
+* orchestration;
+* DOM;
+* events;
+* browser APIs;
+* application coordination;
+* navigation;
+* UI state;
+* data flow.
+
+## WebAssembly
+
+WebAssembly может использоваться для:
+
+* CPU-intensive computation;
+* image processing;
+* audio/video processing;
+* parsing;
+* compression;
+* cryptography;
+* scientific computing;
+* сложных алгоритмов;
+* вычислительной бизнес-логики.
+
+Таким образом:
+
+```text
+JavaScript
+    ↓
+Orchestration / UI / Platform
+
+WebAssembly
+    ↓
+Computation / Data / Algorithms
 ```
 
-Фреймворки становятся тоньше, умнее и ближе к браузеру:
+Это не конкурирующие технологии, а два взаимодополняющих execution layers. Именно эта модель является одной из центральных архитектурных идей Emerge.
 
+---
+
+# 🧩 Progressive Application Architecture
+
+Современное приложение не обязано загружать все возможности сразу.
+
+Можно представить его как последовательное усиление:
+
+```text
+Level 0
+HTML
+
+        ↓
+
+Level 1
+HTML + CSS
+
+        ↓
+
+Level 2
+HTML + CSS + JavaScript
+
+        ↓
+
+Level 3
+HTML + CSS + JS + Web APIs
+
+        ↓
+
+Level 4
++ Components / Signals / Runtime
+
+        ↓
+
+Level 5
++ WebAssembly
+
+        ↓
+
+Level 6
++ Workers
+
+        ↓
+
+Level 7
++ WebGPU
 ```
-┌─────────────────────────────────────────────────┐
-│  Ваше приложение                                │
-├─────────────────────────────────────────────────┤
-│  Фреймворк (React/Angular/Vue/Svelte/Qwik/etc) │
-├─────────────────────────────────────────────────┤
-│  HTML, CSS, JavaScript (Web Platform)          │
-├─────────────────────────────────────────────────┤
-│  Браузер (Blink/Gecko/WebKit)                  │
-└─────────────────────────────────────────────────┘
-```
+
+Это расширяет классическую идею Progressive Enhancement.
+
+Теперь progressive enhancement относится не только к UI, но и к:
+
+* runtime;
+* computation;
+* data processing;
+* concurrency;
+* GPU;
+* offline capabilities.
+
+Именно такой **Progressive Runtime / Progressive WebAssembly** подход был формализован в архитектуре Emerge.
 
 ---
 
 # 📚 Содержание
 
-## Предисловие
+# Предисловие
 
-## От эпохи SPA к новой реальности
+## Что такое Modern Web Application в 2026 году
 
-- Почему мы вообще перешли на SPA?
-- Что пошло не так? Проблемы тяжелых JavaScript-приложений
-- 2023 год как точка бифуркации
-- Новая философия: HTML-first, Compiler-first, Platform-first
-- Как читать эту книгу: карта современного фронтенда
-
-* [📖 Читать главу](./book/preface.md)  
-* [📚 Литература](./references/preface.md)  
-* [💻 Примеры](./examples/preface.md)  
-* [🧪 Практика](./exercises/preface.md)
-
----
-
-# Часть I. Новая эпоха веб-фреймворков
-
-## Глава 1. Почему фреймворки изменились
-
-Темы:
-
-- История развития фронтенда
-- От jQuery к SPA
-- Angular, React и Vue
-- Взрыв JavaScript-экосистемы
-- Почему Virtual DOM перестал быть главным
-- Что изменилось после 2023 года
-- HTML снова становится платформой
-- Роль браузера в 2026 году
-
-* [📖 Читать главу](./book/chapter-01.md)  
-* [📚 Литература](./references/chapter-01.md)  
-* [💻 Примеры](./examples/chapter-01.md)  
-* [🧪 Практика](./exercises/chapter-01.md)
+* От Web Page к Web Application
+* От MPA к SPA
+* От SPA к Platform-Native Applications
+* Почему Browser стал Application Platform
+* Почему Framework больше не является центром приложения
+* Почему Web Application теперь имеет несколько execution layers
+* JavaScript и WebAssembly
+* Browser и Server
+* Что означает Platform First
+* Архитектурная карта книги
 
 ---
 
-## Глава 2. Baseline и новая веб-платформа
+# Часть I. Web Platform
 
-Темы:
+## Глава 1. Browser как Application Platform
 
-- Living Standard
-- Baseline
-- Interop
-- Современные возможности браузеров
-- Когда больше не нужны полифилы
-- Progressive Enhancement нового поколения
+* Browser Process
+* Renderer Process
+* GPU Process
+* Network Process
+* Site Isolation
+* Browser Security Model
+* Event Loop
+* Rendering Pipeline
+* Scheduler
+* Browser Storage
+* Permissions
+* Browser ↔ Operating System
 
-* [📖 Читать главу](./book/chapter-02.md)  
-* [📚 Литература](./references/chapter-02.md)  
-* [💻 Примеры](./examples/chapter-02.md)  
-* [🧪 Практика](./exercises/chapter-02.md)
+## Глава 2. HTML как Application Interface
 
----
+* HTML Living Standard
+* Semantic HTML
+* DOM
+* HTML как declarative API
+* Forms
+* Validation
+* Dialog
+* Popover
+* Details / Summary
+* Declarative Shadow DOM
+* Accessibility
+* HTML как transport format
 
-## Глава 3. Архитектура современного фреймворка
+## Глава 3. CSS как Application Layer
 
-Темы:
+* Cascade
+* Layers
+* Scope
+* Nesting
+* Custom Properties
+* Design Tokens
+* Container Queries
+* Anchor Positioning
+* Modern Layout
+* View Transitions
+* Scroll-driven Animations
+* CSS как execution-free UI engine
 
-- Framework vs Library
-- Runtime vs Compile-time
-- Hydration
-- Partial Hydration
-- Progressive Hydration
-- Islands Architecture
-- Resumability
-- Fine-Grained Reactivity
-- Signals
-- Compiler-first архитектуры
+## Глава 4. JavaScript как Platform Orchestration Layer
 
-* [📖 Читать главу](./book/chapter-03.md)  
-* [📚 Литература](./references/chapter-03.md)  
-* [💻 Примеры](./examples/chapter-03.md)  
-* [🧪 Практика](./exercises/chapter-03.md)
+* ECMAScript Modules
+* Event Loop
+* Tasks
+* Microtasks
+* Rendering
+* DOM
+* Events
+* Fetch
+* Streams
+* URL
+* Navigation
+* Web APIs
+* JavaScript architecture
 
----
+## Глава 5. Web APIs
 
-# Часть II. Reactivity нового поколения
-
-## Глава 4. Эволюция реактивности
-
-Темы:
-
-- Dirty Checking
-- Change Detection
-- Observable
-- Proxy
-- Signals
-- Fine-Grained Reactivity
-- Dependency Graph
-- Automatic Dependency Tracking
-
-* [📖 Читать главу](./book/chapter-04.md)  
-* [📚 Литература](./references/chapter-04.md)  
-* [💻 Примеры](./examples/chapter-04.md)  
-* [🧪 Практика](./exercises/chapter-04.md)
-
----
-
-## Глава 5. Signals
-
-Темы:
-
-- Почему Signals стали стандартом индустрии
-- Angular Signals
-- Solid Signals
-- Preact Signals
-- Qwik Signals
-- Signal Graph
-- Effects
-- Computed
-- Resources
-
-* [📖 Читать главу](./book/chapter-05.md)  
-* [📚 Литература](./references/chapter-05.md)  
-* [💻 Примеры](./examples/chapter-05.md)  
-* [🧪 Практика](./exercises/chapter-05.md)
-
----
-
-## Глава 6. Управление состоянием
-
-Темы:
-
-- Local State
-- Global State
-- Server State
-- URL State
-- Cache State
-- Event State
-- Signals vs Redux
-- Signals vs MobX
-- Signals vs NgRx
-- Zustand
-- Jotai
-- TanStack Store
-
-* [📖 Читать главу](./book/chapter-06.md)  
-* [📚 Литература](./references/chapter-06.md)  
-* [💻 Примеры](./examples/chapter-06.md)  
-* [🧪 Практика](./exercises/chapter-06.md)
+* File System Access
+* OPFS
+* IndexedDB
+* Cache API
+* Clipboard
+* Notifications
+* Permissions
+* Geolocation
+* Camera
+* Microphone
+* Bluetooth
+* WebSockets
+* WebRTC
+* Web Workers
+* Service Workers
+* WebGPU
+* WebNN
 
 ---
 
-# Часть III. Rendering
+# Часть II. Application Architecture
 
-## Глава 7. Современные модели рендеринга
+## Глава 6. Что такое Application Architecture
 
-Темы:
+* Application vs Website
+* Application vs Framework
+* Application vs Runtime
+* Architecture boundaries
+* Components
+* Features
+* Services
+* State
+* Data
+* Execution
 
-- CSR
-- SSR
-- SSG
-- ISR
-- Streaming SSR
-- Edge Rendering
-- Partial Rendering
+## Глава 7. Component Architecture
 
-* [📖 Читать главу](./book/chapter-07.md)  
-* [📚 Литература](./references/chapter-07.md)  
-* [💻 Примеры](./examples/chapter-07.md)  
-* [🧪 Практика](./exercises/chapter-07.md)
+* Native Components
+* Web Components
+* Custom Elements
+* Shadow DOM
+* Slots
+* Templates
+* ElementInternals
+* Form-associated elements
+* Component contracts
+* Component composition
 
----
+## Глава 8. State Architecture
 
-## Глава 8. Hydration
+* Local state
+* UI state
+* Server state
+* URL state
+* Persistent state
+* Shared state
+* Derived state
+* Signals
+* Fine-grained reactivity
 
-Темы:
+## Глава 9. Application Data Flow
 
-- Что такое Hydration
-- Почему Hydration дорогой
-- Partial Hydration
-- Progressive Hydration
-- Selective Hydration
-- Lazy Hydration
-- Resumability
-- Hydration Mismatch
+```text
+User
+ ↓
+UI
+ ↓
+Event
+ ↓
+State
+ ↓
+Application Logic
+ ↓
+Data Layer
+ ↓
+Network / Storage
+ ↓
+Server
+```
 
-* [📖 Читать главу](./book/chapter-08.md)  
-* [📚 Литература](./references/chapter-08.md)  
-* [💻 Примеры](./examples/chapter-08.md)  
-* [🧪 Практика](./exercises/chapter-08.md)
+* Unidirectional data flow
+* Reactive data flow
+* Event-driven architecture
+* Signals
+* Commands
+* Events
+* Resources
+* Caching
+* Synchronization
 
----
+## Глава 10. Application Boundaries
 
-## Глава 9. Server Components
-
-Темы:
-
-- React Server Components
-- Server Functions
-- Server Actions
-- HTML Streaming
-- Flight Protocol
-- Server-first архитектура
-
-* [📖 Читать главу](./book/chapter-09.md)  
-* [📚 Литература](./references/chapter-09.md)  
-* [💻 Примеры](./examples/chapter-09.md)  
-* [🧪 Практика](./exercises/chapter-09.md)
-
----
-
-# Часть IV. Современные архитектуры
-
-## Глава 10. Islands Architecture
-
-Темы:
-
-- Astro
-- Fresh
-- Enhance
-- Partial Islands
-- HTML-first подход
-
-* [📖 Читать главу](./book/chapter-10.md)  
-* [📚 Литература](./references/chapter-10.md)  
-* [💻 Примеры](./examples/chapter-10.md)  
-* [🧪 Практика](./exercises/chapter-10.md)
-
----
-
-## Глава 11. Resumability
-
-Темы:
-
-- Qwik
-- Serialization
-- Lazy Execution
-- Resume вместо Hydrate
-- Event Replay
-- Performance
-
-* [📖 Читать главу](./book/chapter-11.md)  
-* [📚 Литература](./references/chapter-11.md)  
-* [💻 Примеры](./examples/chapter-11.md)  
-* [🧪 Практика](./exercises/chapter-11.md)
+* UI boundary
+* Runtime boundary
+* Data boundary
+* Network boundary
+* Security boundary
+* Server boundary
+* Worker boundary
+* WASM boundary
+* GPU boundary
 
 ---
 
-## Глава 12. Compiler-first Frameworks
+# Часть III. Rendering and Application Delivery
 
-Темы:
+## Глава 11. Browser Rendering Pipeline
 
-- Svelte
-- Solid Compiler
-- Angular Compiler
-- React Compiler
-- Build-time оптимизация
-- Tree Shaking
-- Code Splitting
+* HTML parsing
+* DOM
+* CSSOM
+* Render Tree
+* Style
+* Layout
+* Paint
+* Composite
+* GPU
+* JavaScript execution
+* WASM execution
+* Rendering bottlenecks
 
-* [📖 Читать главу](./book/chapter-12.md)  
-* [📚 Литература](./references/chapter-12.md)  
-* [💻 Примеры](./examples/chapter-12.md)  
-* [🧪 Практика](./exercises/chapter-12.md)
+## Глава 12. Rendering Architectures
 
----
+* MPA
+* SPA
+* SSR
+* CSR
+* SSG
+* Streaming SSR
+* Partial Rendering
+* Islands
+* Selective Hydration
+* Progressive Hydration
+* Resumability
 
-# Часть V. HTML-first Frameworks
+## Глава 13. Hydration and Resumability
 
-## Глава 13. Когда HTML снова главный
+* Why hydration is expensive
+* Hydration boundaries
+* Partial hydration
+* Lazy hydration
+* Resumability
+* Serialized state
+* Event replay
+* Runtime activation
 
-Темы:
+## Глава 14. Navigation Architecture
 
-- Native Dialog
-- Popover API
-- View Transition
-- Anchor Positioning
-- Forms
-- Declarative Shadow DOM
-- Custom Elements
-- HTML как API браузера
+* URLs
+* History API
+* Navigation API
+* Client navigation
+* Server navigation
+* MPA navigation
+* SPA navigation
+* Hybrid navigation
+* View Transitions
+* Navigation state
 
-* [📖 Читать главу](./book/chapter-13.md)  
-* [📚 Литература](./references/chapter-13.md)  
-* [💻 Примеры](./examples/chapter-13.md)  
-* [🧪 Практика](./exercises/chapter-13.md)
+## Глава 15. Progressive Delivery
 
----
-
-## Глава 14. Web Components
-
-Темы:
-
-- Custom Elements
-- Shadow DOM
-- Slots
-- Declarative Shadow DOM
-- ElementInternals
-- Form Associated Custom Elements
-- Scoped Registries
-
-* [📖 Читать главу](./book/chapter-14.md)  
-* [📚 Литература](./references/chapter-14.md)  
-* [💻 Примеры](./examples/chapter-14.md)  
-* [🧪 Практика](./exercises/chapter-14.md)
-
----
-
-## Глава 15. Progressive Enhancement
-
-Темы:
-
-- Минимум JavaScript
-- HTML-first
-- CSS-first
-- Server-first
-- Browser-first
-
-* [📖 Читать главу](./book/chapter-15.md)  
-* [📚 Литература](./references/chapter-15.md)  
-* [💻 Примеры](./examples/chapter-15.md)  
-* [🧪 Практика](./exercises/chapter-15.md)
+* Code Splitting
+* Lazy Loading
+* Preloading
+* Prefetching
+* Speculation Rules
+* Resource priorities
+* Streaming
+* Progressive hydration
+* Progressive runtime
+* Progressive WebAssembly
 
 ---
 
-# Часть VI. Современные фреймворки
+# Часть IV. JavaScript Application Architecture
 
-## Глава 16. Angular 2026
+## Глава 16. JavaScript Runtime Architecture
 
-Темы:
+* Modules
+* Bundling
+* Runtime
+* Dependencies
+* Execution cost
+* Main Thread
+* Long Tasks
+* Scheduling
+* Memory
 
-- Signals
-- Standalone
-- Control Flow
-- Deferred Loading
-- Zoneless
-- SSR
-- Hydration
-- Incremental Hydration
-- Angular Material
-- Будущее Angular
+## Глава 17. Reactive Applications
 
-* [📖 Читать главу](./book/chapter-16.md)  
-* [📚 Литература](./references/chapter-16.md)  
-* [💻 Примеры](./examples/chapter-16.md)  
-* [🧪 Практика](./exercises/chapter-16.md)
+* Signals
+* Computed values
+* Effects
+* Dependency graphs
+* Fine-grained reactivity
+* State propagation
+* Reactive DOM
+* Signals vs Virtual DOM
 
----
+## Глава 18. Framework Architectures
 
-## Глава 17. React 2026
+* Angular
+* React
+* Vue
+* Svelte
+* Solid
+* Qwik
+* Astro
+* Next.js
+* Nuxt
+* Server Components
+* Islands
+* Resumability
+* Compiler-first architectures
 
-Темы:
+## Глава 19. Choosing a Framework
 
-- React Compiler
-- React 19+
-- Server Components
-- Server Actions
-- Suspense
-- Transitions
-- use()
-- Streaming
-- React DOM
-
-* [📖 Читать главу](./book/chapter-17.md)  
-* [📚 Литература](./references/chapter-17.md)  
-* [💻 Примеры](./examples/chapter-17.md)  
-* [🧪 Практика](./exercises/chapter-17.md)
-
----
-
-## Глава 18. Vue 3.6+
-
-Темы:
-
-- Composition API
-- Reactivity
-- Vapor Mode
-- Nuxt
-- Pinia
-- SSR
-- Islands
-
-* [📖 Читать главу](./book/chapter-18.md)  
-* [📚 Литература](./references/chapter-18.md)  
-* [💻 Примеры](./examples/chapter-18.md)  
-* [🧪 Практика](./exercises/chapter-18.md)
+* When a framework is useful
+* When a framework is unnecessary
+* Platform-first architecture
+* Framework-first architecture
+* Compiler-first architecture
+* Server-first architecture
+* Hybrid architecture
+* Decision matrix
 
 ---
 
-## Глава 19. Svelte 5
+# Часть V. WebAssembly Application Architecture
 
-Темы:
+## Глава 20. WebAssembly как второй Execution Layer
 
-- Runes
-- Compiler
-- Reactivity
-- SvelteKit
-- Server Rendering
-- Zero Runtime
+* WebAssembly overview
+* WASM binary format
+* WASM virtual machine
+* Modules
+* Functions
+* Memory
+* Imports
+* Exports
+* JavaScript ↔ WASM
 
-* [📖 Читать главу](./book/chapter-19.md)  
-* [📚 Литература](./references/chapter-19.md)  
-* [💻 Примеры](./examples/chapter-19.md)  
-* [🧪 Практика](./exercises/chapter-19.md)
+## Глава 21. Когда использовать WASM
 
----
+* Algorithms
+* Image processing
+* Audio
+* Video
+* Cryptography
+* Compression
+* Parsing
+* Data processing
+* Simulation
+* Scientific computing
+* Business logic
 
-## Глава 20. Qwik
+## Глава 22. JavaScript ↔ WebAssembly
 
-Темы:
+```text
+JavaScript
+    │
+    ├── call
+    ▼
+WebAssembly
+    │
+    ├── memory
+    ├── exports
+    └── result
+    │
+    ▼
+JavaScript
+```
 
-- Resumability
-- QRL
-- Lazy Execution
-- Optimizer
-- City
-- Edge
+* Imports
+* Exports
+* Typed Arrays
+* Linear Memory
+* Serialization
+* Zero-copy
+* Interop cost
+* Ownership
+* Error handling
 
-* [📖 Читать главу](./book/chapter-20.md)  
-* [📚 Литература](./references/chapter-20.md)  
-* [💻 Примеры](./examples/chapter-20.md)  
-* [🧪 Практика](./exercises/chapter-20.md)
+## Глава 23. WASM Memory Architecture
 
----
+* Linear Memory
+* JS Heap
+* Typed Arrays
+* ArrayBuffer
+* SharedArrayBuffer
+* Memory ownership
+* Allocation
+* Deallocation
+* Memory growth
+* Zero-copy design
 
-## Глава 21. Astro
+## Глава 24. WASM Workers
 
-Темы:
+* Main Thread
+* Worker
+* WASM
+* Message passing
+* SharedArrayBuffer
+* Atomics
+* Worker pools
+* Parallel computation
+* Multithreading
 
-- Islands
-- Content Collections
-- Server Islands
-- View Transition
-- Static-first
+## Глава 25. WASM + WebGPU
 
-* [📖 Читать главу](./book/chapter-21.md)  
-* [📚 Литература](./references/chapter-21.md)  
-* [💻 Примеры](./examples/chapter-21.md)  
-* [🧪 Практика](./exercises/chapter-21.md)
+* CPU vs GPU
+* WebGPU
+* WASM
+* GPU buffers
+* WGSL
+* Compute pipelines
+* Image processing
+* Scientific visualization
+* Simulation
+* Browser GPU architecture
 
----
+## Глава 26. WebAssembly Component Model
 
-## Глава 22. SolidJS
-
-Темы:
-
-- Fine-Grained Reactivity
-- Signals
-- Resources
-- Streaming
-- SSR
-
-* [📖 Читать главу](./book/chapter-22.md)  
-* [📚 Литература](./references/chapter-22.md)  
-* [💻 Примеры](./examples/chapter-22.md)  
-* [🧪 Практика](./exercises/chapter-22.md)
-
----
-
-## Глава 23. Next.js
-
-Темы:
-
-- App Router
-- React Server Components
-- Server Actions
-- Edge Runtime
-- Turbopack
-- Partial Prerendering
-
-* [📖 Читать главу](./book/chapter-23.md)  
-* [📚 Литература](./references/chapter-23.md)  
-* [💻 Примеры](./examples/chapter-23.md)  
-* [🧪 Практика](./exercises/chapter-23.md)
-
----
-
-## Глава 24. Nuxt
-
-Темы:
-
-- Nitro
-- Islands
-- Server Components
-- Edge
-- Hybrid Rendering
-
-* [📖 Читать главу](./book/chapter-24.md)  
-* [📚 Литература](./references/chapter-24.md)  
-* [💻 Примеры](./examples/chapter-24.md)  
-* [🧪 Практика](./exercises/chapter-24.md)
-
----
-
-# Часть VII. Производительность
-
-## Глава 25. Производительность современных приложений
-
-Темы:
-
-- INP
-- LCP
-- CLS
-- TTFB
-- Interaction Latency
-- Streaming
-- Lazy Loading
-- Code Splitting
-
-* [📖 Читать главу](./book/chapter-25.md)  
-* [📚 Литература](./references/chapter-25.md)  
-* [💻 Примеры](./examples/chapter-25.md)  
-* [🧪 Практика](./exercises/chapter-25.md)
+* Module Model
+* Component Model
+* WIT
+* Interfaces
+* Canonical ABI
+* Composition
+* Language-independent components
+* WASI
+* Component architecture
 
 ---
 
-## Глава 26. Оптимизация JavaScript
+# Часть VI. Progressive Enhancement 2.0
 
-Темы:
+## Глава 27. Progressive Enhancement
 
-- Tree Shaking
-- Dead Code Elimination
-- Bundling
-- ES Modules
-- Dynamic Import
-- Import Maps
-- Module Federation
+* История Progressive Enhancement
+* HTML First
+* CSS First
+* JavaScript Last
+* Graceful Degradation
+* Accessibility
+* Offline
+* Network resilience
 
-* [📖 Читать главу](./book/chapter-26.md)  
-* [📚 Литература](./references/chapter-26.md)  
-* [💻 Примеры](./examples/chapter-26.md)  
-* [🧪 Практика](./exercises/chapter-26.md)
+## Глава 28. Progressive Runtime
 
----
+* Runtime boundaries
+* Runtime islands
+* Lazy runtime
+* Runtime activation
+* Partial runtime
+* Zero-runtime architecture
+* Client execution budgets
 
-## Глава 27. Современные сборщики
+## Глава 29. Progressive WebAssembly
 
-Темы:
+* Lazy WASM
+* WASM code splitting
+* WASM preloading
+* WASM caching
+* Progressive activation
+* WASM Workers
+* Progressive computational capabilities
 
-- Vite
-- Rolldown
-- Rspack
-- Turbopack
-- esbuild
-- SWC
-- Parcel
-- Bun
+## Глава 30. Platform-Native Applications
 
-* [📖 Читать главу](./book/chapter-27.md)  
-* [📚 Литература](./references/chapter-27.md)  
-* [💻 Примеры](./examples/chapter-27.md)  
-* [🧪 Практика](./exercises/chapter-27.md)
-
----
-
-# Часть VIII. Full Stack
-
-## Глава 28. Server Functions
-
-Темы:
-
-- RPC
-- Actions
-- Mutations
-- Forms
-- Progressive Enhancement
-
-* [📖 Читать главу](./book/chapter-28.md)  
-* [📚 Литература](./references/chapter-28.md)  
-* [💻 Примеры](./examples/chapter-28.md)  
-* [🧪 Практика](./exercises/chapter-28.md)
+* Native HTML
+* Native CSS
+* Native Web APIs
+* Web Components
+* JS orchestration
+* WASM computation
+* Browser capabilities
+* Minimal framework layer
 
 ---
 
-## Глава 29. Edge Computing
+# Часть VII. Data Architecture
 
-Темы:
+## Глава 31. Web Application Data
 
-- Cloudflare
-- Deno
-- Bun
-- Workers
-- Edge Functions
+* Server data
+* Client data
+* Local data
+* Remote data
+* Derived data
+* Cached data
+* URL data
 
-* [📖 Читать главу](./book/chapter-29.md)  
-* [📚 Литература](./references/chapter-29.md)  
-* [💻 Примеры](./examples/chapter-29.md)  
-* [🧪 Практика](./exercises/chapter-29.md)
+## Глава 32. Browser Storage
 
----
+* Cookies
+* localStorage
+* sessionStorage
+* IndexedDB
+* Cache API
+* OPFS
+* Storage quotas
+* Persistence
+* Eviction
 
-## Глава 30. Full Stack Frameworks
+## Глава 33. Network Data
 
-Темы:
+* Fetch
+* HTTP
+* HTTP caching
+* Streams
+* WebSockets
+* WebTransport
+* WebRTC
+* Server-Sent Events
+* Network resilience
 
-- Next.js
-- Nuxt
-- Remix
-- SvelteKit
-- Qwik City
-- Astro
-- Redwood
-- TanStack Start
+## Глава 34. Data Synchronization
 
-* [📖 Читать главу](./book/chapter-30.md)  
-* [📚 Литература](./references/chapter-30.md)  
-* [💻 Примеры](./examples/chapter-30.md)  
-* [🧪 Практика](./exercises/chapter-30.md)
-
----
-
-# Часть IX. Будущее веб-разработки
-
-## Глава 31. AI и веб-фреймворки
-
-Темы:
-
-- AI Coding
-- AI Components
-- MCP
-- Agentic Development
-- LLM-интеграция
-
-* [📖 Читать главу](./book/chapter-31.md)  
-* [📚 Литература](./references/chapter-31.md)  
-* [💻 Примеры](./examples/chapter-31.md)  
-* [🧪 Практика](./exercises/chapter-31.md)
+* Optimistic UI
+* Offline-first
+* Conflict resolution
+* Synchronization
+* Cache invalidation
+* Local-first architecture
+* Event-driven synchronization
 
 ---
 
-## Глава 32. WebAssembly и новые архитектуры
+# Часть VIII. Server Architecture
 
-Темы:
+## Глава 35. Modern Web Server
 
-- Wasm
-- Component Model
-- WASI
-- Rust
-- Go
-- C#
+* HTTP
+* Request / Response
+* Routing
+* Middleware
+* Sessions
+* Authentication
+* Authorization
+* Validation
 
-* [📖 Читать главу](./book/chapter-32.md)  
-* [📚 Литература](./references/chapter-32.md)  
-* [💻 Примеры](./examples/chapter-32.md)  
-* [🧪 Практика](./exercises/chapter-32.md)
+## Глава 36. Backend Application Architecture
+
+* Monolith
+* Modular Monolith
+* Microservices
+* Serverless
+* Edge Functions
+* Workers
+* Event-driven backend
+
+## Глава 37. API Architecture
+
+* REST
+* RPC
+* GraphQL
+* WebSockets
+* Webhooks
+* Streaming APIs
+* API versioning
+* API contracts
+* Type-safe APIs
+
+## Глава 38. Server Rendering
+
+* SSR
+* Streaming
+* Server Components
+* Server Actions
+* HTML generation
+* Data loading
+* Server/client boundaries
 
 ---
 
-## Глава 33. Browser Native UI
+# Часть IX. Database and Persistence
 
-Темы:
+## Глава 39. Database Architecture
 
-- HTML
-- CSS
-- Popover
-- Dialog
-- Anchor Positioning
-- View Transition
-- Form API
+* Relational databases
+* PostgreSQL
+* MySQL
+* Document databases
+* Key-value stores
+* Graph databases
+* Search engines
 
-* [📖 Читать главу](./book/chapter-33.md)  
-* [📚 Литература](./references/chapter-33.md)  
-* [💻 Примеры](./examples/chapter-33.md)  
-* [🧪 Практика](./exercises/chapter-33.md)
+## Глава 40. Application Data Model
+
+* Entities
+* Relations
+* Transactions
+* Constraints
+* Indexes
+* Migrations
+* ORM
+* Query builders
+
+## Глава 41. Distributed Data
+
+* Replication
+* Sharding
+* Caching
+* Event sourcing
+* CQRS
+* Message queues
+* Event streams
+* Consistency
 
 ---
 
-## Глава 34. Что останется от JavaScript-фреймворков через 10 лет?
+# Часть X. Authentication and Security
 
-Темы:
+## Глава 42. Web Security Model
 
-- HTML-first
-- Browser-first
-- Less JavaScript
-- Compiler-first
-- AI-first
-- Platform-first
-- Будущее React
-- Будущее Angular
-- Будущее Vue
-- Будущее веб-платформы
+* Origin
+* Same-Origin Policy
+* Site Isolation
+* CORS
+* CSP
+* Trusted Types
+* Permissions
+* Secure Contexts
 
-* [📖 Читать главу](./book/chapter-34.md)  
-* [📚 Литература](./references/chapter-34.md)  
-* [💻 Примеры](./examples/chapter-34.md)  
-* [🧪 Практика](./exercises/chapter-34.md)
+## Глава 43. Application Authentication
+
+* Sessions
+* Cookies
+* OAuth
+* OpenID Connect
+* Passkeys
+* WebAuthn
+* MFA
+* Token-based authentication
+
+## Глава 44. Application Authorization
+
+* RBAC
+* ABAC
+* Permissions
+* Capabilities
+* Resource ownership
+* Multi-tenant authorization
+
+## Глава 45. WebAssembly Security
+
+* WASM sandbox
+* Memory isolation
+* Unsafe native code
+* Buffer vulnerabilities
+* Dependency security
+* Supply-chain attacks
+* WASM capability boundaries
+
+WebAssembly не является автоматически безопасным только потому, что выполняется в sandbox. Ошибки памяти и уязвимости самого WASM-модуля остаются частью модели угроз. Современные исследования отдельно рассматривают buffer overflows, use-after-free и цепочки атак, проходящие через WASM в Web Application.
+
+---
+
+# Часть XI. Performance Architecture
+
+## Глава 46. Performance Model
+
+* Network cost
+* CPU cost
+* Memory cost
+* JavaScript cost
+* WASM cost
+* Rendering cost
+* GPU cost
+* Server cost
+
+## Глава 47. Core Web Vitals
+
+* LCP
+* INP
+* CLS
+* Performance budgets
+* Real User Monitoring
+* Field data
+* Lab data
+
+## Глава 48. JavaScript Performance
+
+* Bundle size
+* Code splitting
+* Tree shaking
+* Lazy execution
+* Long Tasks
+* Main Thread contention
+* Garbage Collection
+
+## Глава 49. WebAssembly Performance
+
+* Startup
+* Compilation
+* Instantiation
+* Function calls
+* JS/WASM boundary
+* Memory copies
+* Zero-copy
+* Worker execution
+* SIMD
+* Multithreading
+
+## Глава 50. GPU Performance
+
+* GPU pipelines
+* WebGPU
+* Compute shaders
+* GPU memory
+* CPU/GPU synchronization
+* Data transfer
+* Rendering budgets
+
+---
+
+# Часть XII. AI-Native Web Applications
+
+## Глава 51. AI в Web Application
+
+* AI APIs
+* Browser AI
+* Server AI
+* Local AI
+* Hybrid AI
+* AI-assisted UI
+* AI-powered application logic
+
+## Глава 52. AI Agents как Application Components
+
+* Agent
+* Tool
+* Context
+* Memory
+* Planning
+* Execution
+* Permissions
+* Human-in-the-loop
+
+## Глава 53. AI + Web Platform
+
+* Web APIs
+* WebGPU
+* WebAssembly
+* Local inference
+* Streaming generation
+* Structured output
+* Browser privacy
+
+## Глава 54. AI Application Architecture
+
+```text
+                 Web Application
+                       │
+             ┌─────────┴─────────┐
+             │                   │
+          Human              AI Agent
+             │                   │
+             └─────────┬─────────┘
+                       │
+                    Tools
+                       │
+          ┌────────────┼────────────┐
+          │            │            │
+        Browser       Server       Data
+          │            │            │
+       Web APIs       APIs       Database
+```
+
+---
+
+# Часть XIII. Offline and Distributed Web Applications
+
+## Глава 55. Service Workers
+
+* Installation
+* Activation
+* Fetch interception
+* Cache
+* Update lifecycle
+* Background capabilities
+
+## Глава 56. Offline-first Architecture
+
+* Offline UI
+* Local persistence
+* Synchronization
+* Retry
+* Conflict resolution
+* Network-aware applications
+
+## Глава 57. PWA Architecture
+
+* Manifest
+* Installation
+* Service Worker
+* Storage
+* Offline
+* Push
+* Background processing
+
+---
+
+# Часть XIV. Application Observability
+
+## Глава 58. Errors
+
+* JavaScript errors
+* WASM errors
+* Network errors
+* Server errors
+* Error boundaries
+* Source maps
+* Debugging production applications
+
+## Глава 59. Logging and Tracing
+
+* Structured logs
+* Browser telemetry
+* Server telemetry
+* Distributed tracing
+* Correlation IDs
+
+## Глава 60. Performance Observability
+
+* PerformanceObserver
+* Resource Timing
+* Navigation Timing
+* Long Tasks
+* User Timing
+* Core Web Vitals
+* WASM profiling
+* GPU profiling
+
+---
+
+# Часть XV. Deployment and Infrastructure
+
+## Глава 61. Build Architecture
+
+```text
+Source
+   ↓
+Compiler
+   ↓
+Static Analysis
+   ↓
+Dependency Graph
+   ↓
+Optimization
+   ↓
+JS / CSS / HTML / WASM
+   ↓
+Assets
+   ↓
+Deployment
+```
+
+## Глава 62. Modern Build Systems
+
+* Bundlers
+* Compilers
+* Transpilers
+* Minifiers
+* Tree shaking
+* Code splitting
+* Asset pipelines
+* WASM pipelines
+
+## Глава 63. CDN and Edge
+
+* CDN
+* Edge caching
+* Edge compute
+* Geographic distribution
+* Cache invalidation
+* HTTP caching
+
+## Глава 64. Containers and Cloud
+
+* Containers
+* Kubernetes
+* Serverless
+* Managed services
+* Object storage
+* Databases
+* Queues
+* Observability
+
+## Глава 65. CI/CD
+
+* Git
+* Build
+* Test
+* Security scanning
+* Artifact generation
+* Deployment
+* Rollback
+* Feature flags
+
+---
+
+# Часть XVI. Testing Modern Web Applications
+
+## Глава 66. Testing Pyramid
+
+* Unit
+* Integration
+* Component
+* Browser
+* End-to-end
+* Contract
+* Load testing
+
+## Глава 67. Testing Web Platform Features
+
+* Browser automation
+* Web APIs
+* Workers
+* Service Workers
+* Storage
+* Navigation
+* View Transitions
+
+## Глава 68. Testing WASM
+
+* WASM unit tests
+* JS/WASM integration
+* Memory tests
+* Worker tests
+* Performance tests
+* Cross-browser testing
+
+## Глава 69. Testing Real Application Flows
+
+* Authentication
+* Navigation
+* Forms
+* Network failures
+* Offline
+* Slow devices
+* Mobile browsers
+* Production-like environments
+
+---
+
+# Часть XVII. Architecture Patterns
+
+## Глава 70. SPA Architecture
+
+* Advantages
+* Costs
+* When appropriate
+* When inappropriate
+
+## Глава 71. MPA Architecture
+
+* HTML navigation
+* Server rendering
+* Forms
+* Progressive Enhancement
+
+## Глава 72. Islands Architecture
+
+* Islands
+* Partial hydration
+* Server-first UI
+* Runtime boundaries
+
+## Глава 73. Resumable Architecture
+
+* Serialization
+* Resumability
+* Lazy execution
+* Event recovery
+
+## Глава 74. Platform-Native Architecture
+
+```text
+HTML
+ +
+CSS
+ +
+Web APIs
+ +
+Web Components
+ +
+JavaScript
+ +
+WASM
+ +
+Workers
+ +
+WebGPU
+```
+
+* Zero replacement
+* Native capabilities
+* Minimal runtime
+* Progressive execution
+
+## Глава 75. Hybrid Architecture
+
+```text
+HTML
+   +
+CSS
+   +
+Native Browser APIs
+   +
+JavaScript
+   +
+Optional Framework
+   +
+Optional WASM
+   +
+Server
+```
+
+* When to combine approaches
+* Architecture boundaries
+* Migration from legacy applications
+
+---
+
+# Часть XVIII. Emerge as a Case Study
+
+## Глава 76. Why Build Another Framework?
+
+* Framework saturation
+* Platform evolution
+* Abstraction costs
+* HTML-first architecture
+* Compiler-first architecture
+* Progressive runtime
+
+## Глава 77. Emerge Architecture
+
+```text
+                         APPLICATION
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │     Emerge      │
+                    │                 │
+                    │ Components      │
+                    │ Signals         │
+                    │ Compiler        │
+                    │ Router          │
+                    │ Data            │
+                    │ Runtime         │
+                    │ WASM            │
+                    └────────┬────────┘
+                             │
+                 ┌───────────┴───────────┐
+                 ▼                       ▼
+        JavaScript Execution     WebAssembly Execution
+                 │                       │
+                 └───────────┬───────────┘
+                             ▼
+                       Web Platform
+```
+
+## Глава 78. Emerge Compiler
+
+* AST
+* Static analysis
+* Dependency graph
+* Signals
+* Code generation
+* Tree shaking
+* JS target
+* WASM target
+* Execution-layer selection
+
+## Глава 79. Emerge Runtime
+
+* Progressive runtime
+* Runtime boundaries
+* Components
+* Signals
+* Router
+* Data
+* Hydration
+* Lazy activation
+
+## Глава 80. Emerge WASM Architecture
+
+* WASM loader
+* Bindings
+* Memory
+* JS ↔ WASM
+* Lazy WASM
+* WASM Workers
+* WASM Components
+* WebGPU integration
+
+## Глава 81. Emerge Repository Architecture
+
+```text
+emerge/
+│
+├── packages/
+│   ├── core/
+│   ├── signals/
+│   ├── compiler/
+│   ├── runtime/
+│   ├── router/
+│   ├── data/
+│   ├── wasm/
+│   ├── wasm-bindings/
+│   ├── wasm-components/
+│   ├── client/
+│   ├── server/
+│   └── cli/
+│
+├── internal/
+├── integrations/
+├── examples/
+├── benchmarks/
+├── tests/
+└── docs/
+```
+
+Эта архитектура уже формализована в отдельной спецификации Emerge Framework.
+
+---
+
+# Часть XIX. Choosing an Architecture
+
+## Глава 82. Architecture Decision Framework
+
+Перед выбором технологии необходимо определить:
+
+```text
+1. What is the UI?
+2. What is the state?
+3. Where does data live?
+4. Where does computation happen?
+5. Where does rendering happen?
+6. What must work without JavaScript?
+7. What requires JavaScript?
+8. What requires WASM?
+9. What requires Workers?
+10. What requires GPU?
+11. What belongs on the server?
+```
+
+## Глава 83. Architecture Decision Matrix
+
+Сравнение:
+
+* MPA
+* SPA
+* SSR
+* SSG
+* Islands
+* Resumability
+* Server Components
+* Platform-Native
+* Hybrid
+
+По критериям:
+
+* startup;
+* runtime;
+* complexity;
+* SEO;
+* accessibility;
+* offline;
+* performance;
+* developer experience;
+* scalability;
+* WASM integration;
+* Web Platform alignment.
+
+## Глава 84. Migration Architecture
+
+* Legacy MPA → modern Web
+* jQuery → Web Platform
+* SPA → SSR
+* SPA → Islands
+* Framework → Web Components
+* JavaScript → CSS / HTML
+* JavaScript → WASM
+* Monolith → modular architecture
+* Legacy backend → modern API
+
+---
+
+# Часть XX. Building a Modern Web Application
+
+## Глава 85. Project Architecture
+
+Создание приложения с нуля:
+
+```text
+application/
+├── ui/
+├── components/
+├── state/
+├── data/
+├── services/
+├── workers/
+├── wasm/
+├── server/
+└── infrastructure/
+```
+
+## Глава 86. HTML and CSS Foundation
+
+* Semantic HTML
+* Forms
+* Responsive UI
+* Container Queries
+* Design Tokens
+* Accessibility
+
+## Глава 87. JavaScript Layer
+
+* Modules
+* Events
+* State
+* Data fetching
+* Navigation
+* Browser APIs
+
+## Глава 88. WASM Layer
+
+* Identify computational boundaries
+* Select language
+* Build module
+* Define interface
+* JS/WASM interop
+* Lazy loading
+* Worker execution
+
+## Глава 89. Server Layer
+
+* HTTP
+* API
+* Authentication
+* Database
+* Cache
+* Server rendering
+
+## Глава 90. Production
+
+* Build
+* Tests
+* Security
+* Performance
+* Observability
+* CDN
+* Deployment
+* Monitoring
+
+---
+
+# Часть XXI. Final Architecture
+
+## Глава 91. The Modern Web Application Model
+
+Финальная модель:
+
+```text
+                         USER
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │  WEB APPLICATION│
+                  └────────┬────────┘
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          ▼                ▼                ▼
+      Presentation      Application       Data
+          │                │                │
+      HTML / CSS       JS / WASM        Fetch / Storage
+          │                │                │
+          └────────────────┼────────────────┘
+                           │
+                    ┌──────▼──────┐
+                    │ Web Platform│
+                    └──────┬──────┘
+                           │
+            ┌──────────────┼──────────────┐
+            │              │              │
+         Browser        Workers         WebGPU
+            │              │              │
+            └──────────────┼──────────────┘
+                           │
+                       Network
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │Server / Cloud│
+                    └──────┬───────┘
+                           │
+                  ┌────────┼────────┐
+                  │        │        │
+               Database   Cache    Queue
+```
+
+## Глава 92. The Execution-Layer Model
+
+```text
+                         Application
+                              │
+                              ▼
+                    Architecture Layer
+                              │
+               ┌──────────────┼──────────────┐
+               ▼              ▼              ▼
+             HTML            JS             WASM
+               │              │              │
+          Structure       Orchestration   Computation
+               │              │              │
+               └──────────────┼──────────────┘
+                              ▼
+                       Web Platform
+                              │
+                  ┌───────────┼───────────┐
+                  ▼           ▼           ▼
+               Browser     Workers     WebGPU
+```
+
+## Глава 93. The Platform-Native Web Application
+
+Современное приложение должно:
+
+* использовать HTML вместо JavaScript там, где это возможно;
+* использовать CSS вместо JS для presentation behavior;
+* использовать Web APIs вместо framework abstractions;
+* использовать Web Components для native component boundaries;
+* использовать JavaScript для orchestration;
+* использовать WebAssembly для подходящих вычислительных задач;
+* использовать Workers для background execution;
+* использовать WebGPU для GPU workloads;
+* использовать сервер для server-side responsibilities;
+* использовать database для persistence;
+* использовать compiler для уменьшения runtime work;
+* использовать Progressive Enhancement для постепенного расширения возможностей.
+
+---
+
+# 🧠 Главный архитектурный принцип книги
+
+Современное Web Application — это **не JavaScript application, запущенное внутри браузера**.
+
+Это:
+
+> **Application, построенное поверх Web Platform и распределяющее работу между несколькими execution environments.**
+
+```text
+HTML
+   → structure
+
+CSS
+   → presentation
+
+JavaScript
+   → orchestration
+
+WebAssembly
+   → computation
+
+Workers
+   → concurrency
+
+WebGPU
+   → GPU computation
+
+Web APIs
+   → native capabilities
+
+Server
+   → network-side application logic
+
+Database
+   → persistence
+```
+
+---
+
+# 🔗 Связь с другими книгами
+
+`Modern Web Application 2026` является **системообразующей книгой** серии.
+
+Она использует результаты:
+
+* **Modern HTML 2026** — HTML как декларативный API Web Platform;
+* **Modern CSS 2026** — CSS как полноценный UI/layout engine;
+* **Modern JavaScript 2026** — JavaScript как язык orchestration;
+* **Modern Web Browsers 2026** — Browser как application platform;
+* **Modern Web Frameworks 2026** — архитектуры современных frameworks;
+* **WebAssembly as a Modern Web Platform 2026** — второй execution layer;
+* **Create Your Own Progressive Enhancement Framework 2026** — Emerge как практическая реализация Platform-Native Architecture.
+
+Таким образом:
+
+```text
+Modern HTML
+      │
+Modern CSS
+      │
+Modern JavaScript
+      │
+Modern Web Browsers
+      │
+WebAssembly
+      │
+Modern Web Frameworks
+      │
+      ▼
+Modern Web Application
+      │
+      ▼
+Create Your Own Progressive Enhancement Framework
+      │
+      ▼
+Emerge
+```
+
+При этом Emerge не является обязательным ответом на каждую архитектурную задачу. Он используется здесь как **case study**, показывающий, как описанные принципы можно превратить в конкретный framework architecture. Это важное различие между этой книгой и книгой про создание Emerge.
+
+---
+
+# 🎯 После прочтения книги
+
+Читатель должен уметь:
+
+* проектировать Web Application как целостную систему;
+* понимать границы Browser и Server;
+* использовать Web Platform непосредственно;
+* выбирать между MPA, SPA, SSR, SSG, Islands и Resumability;
+* проектировать component architecture;
+* проектировать state и data flow;
+* понимать JavaScript runtime;
+* использовать Signals;
+* определять, когда нужен WebAssembly;
+* проектировать JS ↔ WASM interop;
+* использовать WASM Workers;
+* понимать WASM Component Model;
+* применять WebGPU;
+* проектировать offline-first приложения;
+* строить security model;
+* проектировать database и backend architecture;
+* измерять performance;
+* строить observability;
+* организовывать CI/CD;
+* проектировать AI-enabled applications;
+* выбирать framework только после понимания Web Platform;
+* проектировать Platform-Native Applications.
+
+---
+
+# 🧭 Главная формула
+
+```text
+Modern Web Application
+=
+Web Platform
++
+Application Architecture
++
+Execution Architecture
++
+Data Architecture
++
+Server Architecture
++
+Security
++
+Performance
++
+Delivery
++
+Observability
+```
+
+А execution architecture всё чаще выглядит так:
+
+```text
+                    Application
+                         │
+             ┌───────────┼───────────┐
+             ▼           ▼           ▼
+            HTML         JS         WASM
+             │           │           │
+        structure    orchestration computation
+             │           │           │
+             └───────────┼───────────┘
+                         ▼
+                  Web Platform
+                         │
+              ┌──────────┼──────────┐
+              ▼          ▼          ▼
+           Browser    Workers     WebGPU
+```
+
+---
+
+# 🚀 Final Thesis
+
+> **The modern Web application is not a framework application running on a browser.**
+>
+> **It is a platform-native system built on top of the Web Platform.**
+
+В этом смысле будущее Web Application определяется не ростом количества framework abstractions, а способностью архитектуры **правильно использовать возможности самой платформы**.
+
+```text
+HTML
++
+CSS
++
+Web APIs
++
+JavaScript
++
+WebAssembly
++
+Workers
++
+WebGPU
++
+Server
++
+Data
+```
+
+Именно это и является предметом **Modern Web Application 2026**.
+
+---
+
+# 📄 License
+
+The book is distributed under Creative Commons Attribution 4.0 International.
+
+Code examples are distributed under the MIT License.
+
+---
+
+# 🤝 Contributing
+
+Contributions are welcome.
+
+You can contribute through:
+
+* Issues
+* Discussions
+* Pull Requests
+* Architecture proposals
+* Examples
+* Experiments
+* Benchmarks
+* Web Platform research
+* WebAssembly experiments
+* Security research
+* Performance research
+
+---
+
+# 🚧 Project Status
+
+**Status:** Research / Architecture / Writing
+
+**Target:** 2026+
+
+**Core thesis:**
+
+> **The Web Platform is no longer merely the environment in which a Web Application runs. It is the foundation on which the application should be architected.**
