@@ -91,11 +91,11 @@ jQuery → SPA (Angular/React/Vue) → 2023+
 ┌─────────────────────────────────────────────────┐
 │  Ваше приложение                                │
 ├─────────────────────────────────────────────────┤
-│  Фреймворк (React/Angular/Vue/Svelte/Qwik/etc) │
+│  Фреймворк (React/Angular/Vue/Svelte/Qwik/etc)  │
 ├─────────────────────────────────────────────────┤
-│  HTML, CSS, JavaScript (Web Platform)          │
+│  HTML, CSS, JavaScript (Web Platform)           │
 ├─────────────────────────────────────────────────┤
-│  Браузер (Blink/Gecko/WebKit)                  │
+│  Браузер (Blink/Gecko/WebKit)                   │
 └─────────────────────────────────────────────────┘
 ```
 
