@@ -779,11 +779,15 @@ jQuery → SPA (Angular/React/Vue) → 2023+
 - Будущее Vue
 - Будущее веб-платформы
 
-# 📌 Project Status
-
-🚧 Under development
-
 * [📖 Читать главу](./book/chapter-34.md)  
 * [📚 Литература](./references/chapter-34.md)  
 * [💻 Примеры](./examples/chapter-34.md)  
 * [🧪 Практика](./exercises/chapter-34.md)
+
+
+
+
+
+# 📌 Project Status
+
+🚧 Under development
